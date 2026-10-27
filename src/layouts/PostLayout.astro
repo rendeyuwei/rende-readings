@@ -1,0 +1,74 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import BaseLayout from './BaseLayout.astro';
+import CategoryPill from '../components/CategoryPill.astro';
+import { formatDate } from '../lib/dates';
+import { withBase } from '../lib/paths';
+
+interface Props {
+  post: CollectionEntry<'posts'>;
+}
+
+const { post } = Astro.props;
+const { title, date, category, description, source, sourceTitle, author, tags } = post.data;
+const published = formatDate(date);
+const markdownHref = withBase(`/md/${post.id}.md`);
+---
+
+<BaseLayout title={`${title} · 灯下札记`} description={description}>
+  <article class="post">
+    <a class="back" href={withBase('/')}>全部札记</a>
+    <header>
+      <p class="post__meta">
+        <CategoryPill category={category} />
+        <time datetime={published}>{published}</time>
+        <span>{author}</span>
+      </p>
+      <h1 class="post__title">{title}</h1>
+      <p class="dek">{description}</p>
+      {
+        tags.length > 0 && (
+          <p class="tags">标签：{tags.join(' · ')}</p>
+        )
+      }
+      <div class="post__actions">
+        <a class="action" href={source} target="_blank" rel="noopener noreferrer">
+          原文外链
+          <span class="action__sub" lang="en">{sourceTitle}</span>
+        </a>
+        <button type="button" class="action" data-copy-md={markdownHref}>复制 Markdown</button>
+        <a class="action" href={markdownHref} download={`${post.id}.md`}>下载 Markdown</a>
+      </div>
+    </header>
+    <div class="prose">
+      <slot />
+    </div>
+  </article>
+</BaseLayout>
+
+<script>
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-copy-md]');
+
+  for (const button of buttons) {
+    button.addEventListener('click', async () => {
+      const url = button.dataset.copyMd;
+      if (!url || button.disabled) return;
+      const original = button.textContent;
+      button.disabled = true;
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(String(response.status));
+        const text = await response.text();
+        if (!text.startsWith('---')) throw new Error('not markdown');
+        await navigator.clipboard.writeText(text);
+        button.textContent = '已复制';
+      } catch {
+        button.textContent = '复制失败';
+      }
+      window.setTimeout(() => {
+        button.textContent = original;
+        button.disabled = false;
+      }, 1600);
+    });
+  }
+</script>

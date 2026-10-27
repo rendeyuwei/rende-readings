@@ -1,0 +1,14 @@
+---
+import ThemeToggle from './ThemeToggle.astro';
+import { withBase } from '../lib/paths';
+---
+
+<header class="site-header">
+  <div class="shell site-header__bar">
+    <a class="wordmark" href={withBase('/')}>
+      <span class="seal" aria-hidden="true">札</span>
+      灯下札记
+    </a>
+    <ThemeToggle />
+  </div>
+</header>

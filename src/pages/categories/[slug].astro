@@ -1,0 +1,42 @@
+---
+import CategoryNav from '../../components/CategoryNav.astro';
+import PostCard from '../../components/PostCard.astro';
+import { categories, type CategoryName } from '../../lib/categories';
+import { countCategories, loadPosts } from '../../lib/posts';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { withBase } from '../../lib/paths';
+
+export function getStaticPaths() {
+  return categories.map((category) => ({
+    params: { slug: category.slug },
+    props: { name: category.name, slug: category.slug },
+  }));
+}
+
+interface Props {
+  name: CategoryName;
+  slug: string;
+}
+
+const { name, slug } = Astro.props;
+const allPosts = await loadPosts();
+const posts = allPosts.filter((post) => post.data.category === name);
+const counts = countCategories(allPosts);
+---
+
+<BaseLayout title={`${name} · 灯下札记`} description={`${name}分类下的专题精读笔记。`}>
+  <a class="back" href={withBase('/')}>全部札记</a>
+  <h1 class="page-title">{name}</h1>
+  <CategoryNav current={slug} counts={counts} />
+  {
+    posts.length === 0 ? (
+      <p class="empty">这一类还没有札记。</p>
+    ) : (
+      <section class="entries" aria-label={name}>
+        {posts.map((post) => (
+          <PostCard post={post} />
+        ))}
+      </section>
+    )
+  }
+</BaseLayout>
