@@ -373,6 +373,18 @@ main {
 }
 
 .action:hover {
+  border-bottom-color: var(--ink);
+  color: var(--ink);
+}
+
+.action[data-state="copied"],
+.action[data-state="copied"]:hover {
+  border-bottom-color: var(--link);
+  color: var(--link);
+}
+
+.action[data-state="failed"],
+.action[data-state="failed"]:hover {
   border-bottom-color: var(--seal);
   color: var(--seal);
 }

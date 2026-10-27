@@ -49,6 +49,41 @@ const markdownHref = withBase(`/md/${post.id}.md`);
 <script>
   const buttons = document.querySelectorAll<HTMLButtonElement>('[data-copy-md]');
 
+  async function copyMarkdown(url: string): Promise<void> {
+    if (navigator.clipboard?.write && typeof ClipboardItem !== 'undefined') {
+      const textPromise = fetch(url).then(async (response) => {
+        if (!response.ok) throw new Error(String(response.status));
+        const text = await response.text();
+        if (!text.startsWith('---')) throw new Error('not markdown');
+        return text;
+      });
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          'text/plain': textPromise.then((text) => new Blob([text], { type: 'text/plain' })),
+        }),
+      ]);
+      return;
+    }
+
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(String(response.status));
+    const text = await response.text();
+    if (!text.startsWith('---')) throw new Error('not markdown');
+    const area = document.createElement('textarea');
+    area.value = text;
+    area.setAttribute('readonly', '');
+    area.style.position = 'fixed';
+    area.style.top = '0';
+    area.style.left = '0';
+    area.style.opacity = '0';
+    document.body.append(area);
+    area.focus();
+    area.select();
+    const copied = document.execCommand('copy');
+    area.remove();
+    if (!copied) throw new Error('copy failed');
+  }
+
   for (const button of buttons) {
     button.addEventListener('click', async () => {
       const url = button.dataset.copyMd;
@@ -56,19 +91,18 @@ const markdownHref = withBase(`/md/${post.id}.md`);
       const original = button.textContent;
       button.disabled = true;
       try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(String(response.status));
-        const text = await response.text();
-        if (!text.startsWith('---')) throw new Error('not markdown');
-        await navigator.clipboard.writeText(text);
+        await copyMarkdown(url);
+        button.dataset.state = 'copied';
         button.textContent = '已复制';
       } catch {
+        button.dataset.state = 'failed';
         button.textContent = '复制失败';
       }
       window.setTimeout(() => {
         button.textContent = original;
+        delete button.dataset.state;
         button.disabled = false;
-      }, 1600);
+      }, 2000);
     });
   }
 </script>
