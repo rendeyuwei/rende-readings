@@ -1,0 +1,12 @@
+---
+import { categorySlug, type CategoryName } from '../lib/categories';
+import { withBase } from '../lib/paths';
+
+interface Props {
+  category: CategoryName;
+}
+
+const { category } = Astro.props;
+---
+
+<a class="pill" href={withBase(`/categories/${categorySlug(category)}/`)}>{category}</a>

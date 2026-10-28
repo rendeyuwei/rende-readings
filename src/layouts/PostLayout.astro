@@ -1,0 +1,108 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import BaseLayout from './BaseLayout.astro';
+import CategoryPill from '../components/CategoryPill.astro';
+import { formatDate } from '../lib/dates';
+import { withBase } from '../lib/paths';
+
+interface Props {
+  post: CollectionEntry<'posts'>;
+}
+
+const { post } = Astro.props;
+const { title, date, category, description, source, sourceTitle, author, tags } = post.data;
+const published = formatDate(date);
+const markdownHref = withBase(`/md/${post.id}.md`);
+---
+
+<BaseLayout title={`${title} · 灯下札记`} description={description}>
+  <article class="post">
+    <a class="back" href={withBase('/')}>全部札记</a>
+    <header>
+      <p class="post__meta">
+        <CategoryPill category={category} />
+        <time datetime={published}>{published}</time>
+        <span>{author}</span>
+      </p>
+      <h1 class="post__title">{title}</h1>
+      <p class="dek">{description}</p>
+      {
+        tags.length > 0 && (
+          <p class="tags">标签：{tags.join(' · ')}</p>
+        )
+      }
+      <div class="post__actions">
+        <a class="action" href={source} target="_blank" rel="noopener noreferrer">
+          原文外链
+          <span class="action__sub" lang="en">{sourceTitle}</span>
+        </a>
+        <button type="button" class="action" data-copy-md={markdownHref}>复制 Markdown</button>
+        <a class="action" href={markdownHref} download={`${post.id}.md`}>下载 Markdown</a>
+      </div>
+    </header>
+    <div class="prose">
+      <slot />
+    </div>
+  </article>
+</BaseLayout>
+
+<script>
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-copy-md]');
+
+  async function copyMarkdown(url: string): Promise<void> {
+    if (navigator.clipboard?.write && typeof ClipboardItem !== 'undefined') {
+      const textPromise = fetch(url).then(async (response) => {
+        if (!response.ok) throw new Error(String(response.status));
+        const text = await response.text();
+        if (!text.startsWith('---')) throw new Error('not markdown');
+        return text;
+      });
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          'text/plain': textPromise.then((text) => new Blob([text], { type: 'text/plain' })),
+        }),
+      ]);
+      return;
+    }
+
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(String(response.status));
+    const text = await response.text();
+    if (!text.startsWith('---')) throw new Error('not markdown');
+    const area = document.createElement('textarea');
+    area.value = text;
+    area.setAttribute('readonly', '');
+    area.style.position = 'fixed';
+    area.style.top = '0';
+    area.style.left = '0';
+    area.style.opacity = '0';
+    document.body.append(area);
+    area.focus();
+    area.select();
+    const copied = document.execCommand('copy');
+    area.remove();
+    if (!copied) throw new Error('copy failed');
+  }
+
+  for (const button of buttons) {
+    button.addEventListener('click', async () => {
+      const url = button.dataset.copyMd;
+      if (!url || button.disabled) return;
+      const original = button.textContent;
+      button.disabled = true;
+      try {
+        await copyMarkdown(url);
+        button.dataset.state = 'copied';
+        button.textContent = '已复制';
+      } catch {
+        button.dataset.state = 'failed';
+        button.textContent = '复制失败';
+      }
+      window.setTimeout(() => {
+        button.textContent = original;
+        delete button.dataset.state;
+        button.disabled = false;
+      }, 2000);
+    });
+  }
+</script>

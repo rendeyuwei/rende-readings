@@ -1,0 +1,35 @@
+<button type="button" class="theme-toggle" data-theme-toggle aria-label="切换浅色或深色">
+  <span class="when-light">深色</span>
+  <span class="when-dark">浅色</span>
+</button>
+
+<script>
+  const storageKey = 'dengxia-theme';
+  const root = document.documentElement;
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]');
+
+  function currentTheme(): 'light' | 'dark' {
+    const explicit = root.dataset.theme;
+    if (explicit === 'light' || explicit === 'dark') return explicit;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
+  function syncLabel(): void {
+    const theme = currentTheme();
+    for (const button of buttons) {
+      button.setAttribute('aria-label', theme === 'dark' ? '切换到浅色' : '切换到深色');
+      button.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+    }
+  }
+
+  syncLabel();
+
+  for (const button of buttons) {
+    button.addEventListener('click', () => {
+      const next = currentTheme() === 'dark' ? 'light' : 'dark';
+      root.dataset.theme = next;
+      localStorage.setItem(storageKey, next);
+      syncLabel();
+    });
+  }
+</script>

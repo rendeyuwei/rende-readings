@@ -1,0 +1,18 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CategoryNav from '../components/CategoryNav.astro';
+import PostCard from '../components/PostCard.astro';
+import { countCategories, loadPosts } from '../lib/posts';
+
+const posts = await loadPosts();
+const counts = countCategories(posts);
+---
+
+<BaseLayout title="灯下札记" description="专题精读的中文笔记，按日期排列。">
+  <h1 class="page-title">专题精读的中文笔记</h1>
+  <p class="dek">按日期排列。</p>
+  <CategoryNav counts={counts} />
+  <section class="entries" aria-label="全部札记">
+    {posts.map((post) => <PostCard post={post} />)}
+  </section>
+</BaseLayout>

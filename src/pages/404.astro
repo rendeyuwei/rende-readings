@@ -1,0 +1,10 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { withBase } from '../lib/paths';
+---
+
+<BaseLayout title="找不到这篇札记 · 灯下札记" description="这个地址没有对应的笔记。">
+  <h1 class="page-title">找不到这篇札记</h1>
+  <p class="empty">地址可能写错了，或这篇还没放进来。</p>
+  <p><a class="back" href={withBase('/')}>回首页</a></p>
+</BaseLayout>

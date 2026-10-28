@@ -1,0 +1,25 @@
+---
+import { categories } from '../lib/categories';
+import { withBase } from '../lib/paths';
+
+interface Props {
+  current?: string;
+  counts: Record<string, number>;
+}
+
+const { current, counts } = Astro.props;
+---
+
+<nav class="cat-nav" aria-label="分类">
+  {
+    categories.map((category) => (
+      <a
+        href={withBase(`/categories/${category.slug}/`)}
+        aria-current={current === category.slug ? 'page' : undefined}
+      >
+        {category.name}
+        <span class="count">{counts[category.slug] ?? 0}</span>
+      </a>
+    ))
+  }
+</nav>

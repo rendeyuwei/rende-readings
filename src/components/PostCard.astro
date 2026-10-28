@@ -1,0 +1,24 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import CategoryPill from './CategoryPill.astro';
+import { formatDate } from '../lib/dates';
+import { withBase } from '../lib/paths';
+
+interface Props {
+  post: CollectionEntry<'posts'>;
+}
+
+const { post } = Astro.props;
+const date = formatDate(post.data.date);
+---
+
+<article class="entry">
+  <p class="entry__meta">
+    <time datetime={date}>{date}</time>
+    <CategoryPill category={post.data.category} />
+  </p>
+  <h2 class="entry__title">
+    <a href={withBase(`/posts/${post.id}/`)}>{post.data.title}</a>
+  </h2>
+  <p class="entry__desc">{post.data.description}</p>
+</article>
