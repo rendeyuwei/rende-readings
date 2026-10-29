@@ -1,6 +1,6 @@
 ---
 title: "让每套 Harness 都能持久运行（Vercel）"
-date: 2026-10-19
+date: 2026-10-29
 category: "Agent 工作流"
 tags: ["durable-harness", "Agent", "Vercel", "Workflow SDK"]
 source: "https://vercel.com/blog/making-every-harness-durable"
